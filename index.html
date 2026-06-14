@@ -996,10 +996,11 @@ const CAT_TO_SECTION = { breakfast:'breakfast', lunch:'lunch', dinner:'dinner', 
 function logMealRec(category, mealIndex) {
   const meal = MEAL_RECS[category][mealIndex];
   const section = CAT_TO_SECTION[category] || 'breakfast';
-  meal.ingredients.forEach(ing => {
-    if (ing.cal === 0 && ing.protein === 0) return;
-    todayLog().push({ id: Date.now() + Math.random(), name: ing.name, cal: ing.cal, protein: ing.protein, carbs: ing.carbs, fat: ing.fat, section, _base: {cal: ing.cal, protein: ing.protein, carbs: ing.carbs, fat: ing.fat}, _qty: 1 });
-  });
+  const totCal     = meal.ingredients.reduce((s,i) => s + i.cal, 0);
+  const totProtein = meal.ingredients.reduce((s,i) => s + i.protein, 0);
+  const totCarbs   = meal.ingredients.reduce((s,i) => s + i.carbs, 0);
+  const totFat     = meal.ingredients.reduce((s,i) => s + i.fat, 0);
+  todayLog().push({ id: Date.now(), name: meal.name, cal: totCal, protein: totProtein, carbs: totCarbs, fat: totFat, section, _base: {cal: totCal, protein: totProtein, carbs: totCarbs, fat: totFat}, _qty: 1 });
   persist();
   renderTodayLog();
   toast('Logged: ' + meal.name);
@@ -1007,7 +1008,8 @@ function logMealRec(category, mealIndex) {
 
 function logSnackZone(slot, idx) {
   const s = SNACK_ZONE[slot][idx];
-  todayLog().push({ id: Date.now(), name: s.name, cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat, section: 'snack', _base: {cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat}, _qty: 1 });
+  const section = 'snack-' + slot;
+  todayLog().push({ id: Date.now(), name: s.name, cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat, section, _base: {cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat}, _qty: 1 });
   persist();
   renderTodayLog();
   toast('Logged: ' + s.name);
@@ -1028,8 +1030,8 @@ function deleteFoodEntry(id) {
   renderTodayLog();
 }
 
-const SECTION_ORDER = ['breakfast','shake','snack','lunch','dinner'];
-const SECTION_LABELS = { breakfast:'Breakfast', shake:'Shake', snack:'Snack', lunch:'Lunch', dinner:'Dinner' };
+const SECTION_ORDER = ['breakfast','shake','snack-morning','snack-pre','snack-post','lunch','dinner','snack-night'];
+const SECTION_LABELS = { breakfast:'Breakfast', shake:'Shake', snack:'Snack', 'snack-morning':'Mid Morning Snack', 'snack-pre':'Pre-Practice Snack', 'snack-post':'Post-Practice Snack', 'snack-night':'Bedtime Snack', lunch:'Lunch', dinner:'Dinner' };
 
 function renderTodayLog() {
   const entries = todayLog();
