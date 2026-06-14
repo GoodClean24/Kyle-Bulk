@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Kyle's Bulk Tracker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #6DBE45;
+  --green-dim: #1e3010;
+  --bg: #0d0d0d;
+  --card: #161616;
+  --card2: #1e1e1e;
+  --border: #2a2a2a;
+  --text: #f0f0f0;
+  --muted: #6b6b6b;
+  --red: #f87171;
+  --yellow: #fbbf24;
+  --blue: #60a5fa;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 30px;
+}
+
+/* ── TOP TAB BAR ── */
+.tab-bar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #111;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab-pill {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 14px 18px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  font-family: inherit;
+}
+.tab-pill.active { color: var(--green); border-bottom-color: var(--green); }
+
+/* ── HEADER ── */
+.header {
+  background: #111;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.header-name { font-size: 22px; font-weight: 900; color: var(--green); letter-spacing: -0.5px; }
+.header-date { font-size: 11px; color: var(--muted); }
+
+/* ── TAB CONTENT ── */
+.tab { display: none; padding: 14px 16px; }
+.tab.active { display: block; }
+
+/* ── CARDS ── */
+.card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+}
+.card-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+/* ── INPUTS ── */
+.inp {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  font-family: inherit;
+  width: 100%;
+}
+.inp::placeholder { color: var(--muted); }
+
+/* ── BUTTONS ── */
+.btn-green {
+  background: var(--green);
+  color: #0d0d0d;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.btn-ghost {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-red {
+  background: none;
+  border: 1px solid var(--red);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--red);
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── LOG FOOD ── */
+.log-food-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.macro-fields {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.macro-field-wrap label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: block;
+  margin-bottom: 3px;
+}
+.macro-fields .inp { padding: 8px 6px; font-size: 12px; text-align: center; }
+
+/* ── CALORIE HERO ── */
+.cal-hero { text-align: center; padding: 10px 0 6px; }
+.cal-number { font-size: 64px; font-weight: 900; color: var(--green); letter-spacing: -3px; line-height: 1; }
+.cal-label { font-size: 12px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+.cal-remaining { font-size: 14px; font-weight: 700; color: var(--yellow); margin-top: 6px; }
+
+/* ── PROGRESS BAR ── */
+.prog-wrap {
+  background: var(--border);
+  border-radius: 99px;
+  height: 10px;
+  overflow: hidden;
+  margin: 10px 0 4px;
+}
+.prog-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #4a9e2a, var(--green));
+  transition: width 0.4s ease;
+}
+.prog-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); }
+
+/* ── MACRO PILLS ── */
+.macro-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.macro-pill { background: var(--card2); border-radius: 12px; padding: 12px 10px; border: 1px solid var(--border); text-align: center; }
+.macro-pill-val { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; line-height: 1; }
+.macro-pill-target { font-size: 10px; color: var(--muted); font-weight: 600; }
+.macro-pill-label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; }
+.macro-pill.calories .macro-pill-val { color: var(--green); }
+.macro-pill.protein .macro-pill-val { color: var(--blue); }
+.macro-pill.carbs .macro-pill-val { color: var(--yellow); }
+
+/* ── FOOD LOG LIST ── */
+.food-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.food-row:last-child { border-bottom: none; }
+.food-row-name { font-size: 13px; font-weight: 600; }
+.food-row-macros { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.food-row-cal { font-size: 14px; font-weight: 800; color: var(--green); flex-shrink: 0; }
+.food-row-del { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; padding: 0 4px; margin-left: 8px; }
+.empty-log { text-align: center; color: var(--muted); font-size: 13px; padding: 24px 0; line-height: 1.6; }
+
+/* ── COLLAPSIBLE ── */
+.collapsible { background: var(--card); border-radius: 14px; margin-bottom: 10px; border: 1px solid var(--border); overflow: hidden; }
+.collapsible-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; cursor: pointer; }
+.collapsible-title { font-size: 14px; font-weight: 700; }
+.collapsible-chevron { font-size: 11px; color: var(--muted); transition: transform 0.2s; }
+.collapsible.open .collapsible-chevron { transform: rotate(180deg); }
+.collapsible-body { display: none; border-top: 1px solid var(--border); padding: 12px 16px; background: #111; }
+.collapsible.open .collapsible-body { display: block; }
+
+/* ── MENU GUIDE ── */
+.menu-pills { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; margin-bottom: 14px; }
+.menu-pills::-webkit-scrollbar { display: none; }
+.menu-pill {
+  flex-shrink: 0;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s;
+}
+.menu-pill.active { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+/* ── MEAL REC CARDS ── */
+.meal-rec-card { background: var(--card2); border-radius: 12px; padding: 14px; margin-bottom: 10px; border: 1px solid var(--border); }
+.meal-rec-name { font-size: 14px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
+.meal-rec-ingredient { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+.meal-rec-ingredient:last-of-type { border-bottom: none; }
+.meal-rec-ingredient span { color: var(--text); font-weight: 600; }
+.meal-rec-totals { display: flex; gap: 10px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.meal-rec-total-item { text-align: center; flex: 1; }
+.meal-rec-total-val { font-size: 16px; font-weight: 800; color: var(--green); }
+.meal-rec-total-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.meal-rec-actions { display: flex; gap: 8px; margin-top: 12px; }
+.btn-log { flex: 1; background: var(--green); color: #0d0d0d; border: none; border-radius: 10px; padding: 10px; font-size: 13px; font-weight: 800; cursor: pointer; font-family: inherit; }
+.btn-edit { background: none; border: 1px solid var(--border); border-radius: 10px; padding: 10px 16px; font-size: 13px; font-weight: 700; color: var(--muted); cursor: pointer; font-family: inherit; }
+
+/* ── SAVED ITEMS ── */
+.saved-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.saved-item:last-child { border-bottom: none; }
+.saved-item-name { font-size: 13px; font-weight: 600; }
+.saved-item-macros { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.saved-item-cal { font-size: 13px; font-weight: 800; color: var(--green); margin-right: 4px; }
+.icon-btn { background: none; border: none; color: var(--muted); font-size: 15px; cursor: pointer; padding: 2px; }
+
+/* ── SNACK ZONE ── */
+.snack-time-badge { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; padding: 4px 10px; border-radius: 6px; margin-bottom: 2px; }
+.badge-morning { background: rgba(251,191,36,0.15); color: var(--yellow); }
+.badge-pre { background: rgba(109,190,69,0.15); color: var(--green); }
+.badge-post { background: rgba(96,165,250,0.15); color: var(--blue); }
+.badge-night { background: rgba(167,139,250,0.15); color: #a78bfa; }
+.snack-option { background: var(--card2); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.snack-option-name { font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.snack-option-detail { font-size: 11px; color: var(--muted); }
+.snack-log-btn { background: none; border: 1px solid var(--green); border-radius: 8px; padding: 7px 12px; font-size: 12px; font-weight: 700; color: var(--green); cursor: pointer; flex-shrink: 0; margin-left: 10px; font-family: inherit; }
+
+/* ── TIP ── */
+.tip { background: #1a1500; border: 1px solid #3d3000; border-radius: 10px; padding: 10px 14px; font-size: 12px; color: var(--yellow); margin-top: 10px; line-height: 1.5; }
+.tip b { color: #fcd34d; }
+
+/* ── PROGRESS TAB ── */
+.weigh-btn { width: 100%; background: var(--green); color: #0d0d0d; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 800; cursor: pointer; margin-bottom: 12px; font-family: inherit; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.stat-box { background: var(--card2); border-radius: 12px; padding: 14px; border: 1px solid var(--border); text-align: center; }
+.stat-box-val { font-size: 28px; font-weight: 900; letter-spacing: -1px; color: var(--green); }
+.stat-box-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-top: 4px; }
+.weight-progress-hero { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 10px; }
+.weight-current-big { font-size: 52px; font-weight: 900; color: var(--green); letter-spacing: -2px; line-height: 1; }
+.weight-unit-big { font-size: 16px; color: var(--muted); font-weight: 700; padding-bottom: 8px; }
+.weight-goal-box { background: var(--green-dim); border: 1px solid var(--green); border-radius: 10px; padding: 8px 14px; text-align: center; }
+.weight-goal-box-val { font-size: 22px; font-weight: 900; color: var(--green); }
+.weight-goal-box-label { font-size: 9px; color: #5a9e3a; text-transform: uppercase; letter-spacing: 0.06em; }
+.week-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.week-row:last-child { border-bottom: none; }
+.week-row-date { font-size: 13px; font-weight: 700; color: var(--muted); }
+.week-row-weight { font-size: 20px; font-weight: 900; color: var(--text); }
+.week-row-change { font-size: 12px; font-weight: 700; }
+.change-up { color: var(--green); }
+.change-down { color: var(--red); }
+.action-row { display: flex; gap: 10px; }
+.action-btn { flex: 1; background: none; border: 1px solid var(--border); border-radius: 10px; padding: 12px; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+
+/* ── TOAST ── */
+.toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: var(--green); color: #0d0d0d; padding: 8px 18px; border-radius: 30px; font-weight: 700; font-size: 11px; z-index: 300; display: none; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+
+/* ── MODAL ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 100; display: flex; align-items: flex-end; justify-content: center; }
+.modal-box { background: var(--card); border-radius: 20px 20px 0 0; padding: 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.modal-title { font-size: 16px; font-weight: 800; }
+.modal-close { background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+.modal-field { margin-bottom: 10px; }
+.modal-field label { font-size: 11px; color: var(--muted); font-weight: 700; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.05em; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast"></div>
+
+<!-- EDIT ITEM MODAL -->
+<div id="editModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Edit Item</span>
+      <button class="modal-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-field"><label>Name</label><input class="inp" id="editName" /></div>
+    <div class="modal-field">
+      <label>Paste from Claude (auto-fill)</label>
+      <div style="display:flex;gap:8px;">
+        <input class="inp" id="editPaste" placeholder="Food: X cal, Xg protein..." style="flex:1;" />
+        <button class="btn-ghost" onclick="parseEditPaste()">Fill</button>
+      </div>
+    </div>
+    <div class="modal-grid" style="margin-bottom:10px;">
+      <div class="modal-field"><label>Calories</label><input class="inp" type="number" id="editCal" /></div>
+      <div class="modal-field"><label>Protein (g)</label><input class="inp" type="number" id="editProtein" /></div>
+      <div class="modal-field"><label>Carbs (g)</label><input class="inp" type="number" id="editCarbs" /></div>
+      <div class="modal-field"><label>Fat (g)</label><input class="inp" type="number" id="editFat" /></div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn-green" style="flex:1;" onclick="saveEditItem()">Save Changes</button>
+      <button class="btn-red" onclick="deleteEditItem()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEIGH IN MODAL -->
+<div id="weighModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Log Weight</span>
+      <button class="modal-close" onclick="document.getElementById('weighModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-field"><label>Weight (lbs)</label><input class="inp" type="number" id="weighInput" placeholder="e.g. 163" step="0.1" /></div>
+    <div class="modal-field"><label>Date</label><input class="inp" type="date" id="weighDate" /></div>
+    <button class="btn-green" style="width:100%;margin-top:8px;" onclick="saveWeight()">Save</button>
+  </div>
+</div>
+
+<!-- ADD SNACK MODAL -->
+<div id="snackModal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Add Snack</span>
+      <button class="modal-close" onclick="document.getElementById('snackModal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-field"><label>Name</label><input class="inp" id="snackName" placeholder="Snack name..." /></div>
+    <div class="modal-field">
+      <label>Paste from Claude (auto-fill)</label>
+      <div style="display:flex;gap:8px;">
+        <input class="inp" id="snackPaste" placeholder="Food: X cal, Xg protein..." style="flex:1;" />
+        <button class="btn-ghost" onclick="parseSnackPaste()">Fill</button>
+      </div>
+    </div>
+    <div class="modal-grid" style="margin-bottom:10px;">
+      <div class="modal-field"><label>Calories</label><input class="inp" type="number" id="snackCal" /></div>
+      <div class="modal-field"><label>Protein (g)</label><input class="inp" type="number" id="snackProtein" /></div>
+      <div class="modal-field"><label>Carbs (g)</label><input class="inp" type="number" id="snackCarbs" /></div>
+      <div class="modal-field"><label>Fat (g)</label><input class="inp" type="number" id="snackFat" /></div>
+    </div>
+    <button class="btn-green" style="width:100%;margin-top:8px;" onclick="saveSnack()">Save Snack</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="header-name">KYLE 🏈</div>
+    <div class="header-date" id="headerDate">Saturday, June 13</div>
+  </div>
+  <div style="text-align:right;">
+    <div style="font-size:11px;color:var(--muted);">Goal Weight</div>
+    <div style="font-size:18px;font-weight:900;color:var(--green);">175 lbs</div>
+  </div>
+</div>
+
+<!-- TOP TAB BAR -->
+<div class="tab-bar">
+  <button class="tab-pill active" onclick="switchTab('today', this)">Today</button>
+  <button class="tab-pill" onclick="switchTab('menu', this)">Menu Guide</button>
+  <button class="tab-pill" onclick="switchTab('snacks', this)">Snack Zone</button>
+  <button class="tab-pill" onclick="switchTab('progress', this)">Progress</button>
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 1: TODAY
+═══════════════════════════════ -->
+<div id="tab-today" class="tab active">
+
+  <!-- LOG FOOD collapsible -->
+  <div class="collapsible" id="col-log-food" style="margin-bottom:12px;">
+    <div class="collapsible-header" onclick="toggleCollapsible('log-food')">
+      <div class="collapsible-title">+ Log Food</div>
+      <div class="collapsible-chevron">▼</div>
+    </div>
+    <div class="collapsible-body">
+      <div class="log-food-row">
+        <input class="inp" id="foodName" placeholder="Food name..." style="flex:1;" />
+        <select class="inp" id="logSection" style="width:auto;flex-shrink:0;">
+          <option value="breakfast">Breakfast</option>
+          <option value="snack">Snack</option>
+          <option value="lunch">Lunch</option>
+          <option value="dinner">Dinner</option>
+          <option value="shake">Shake</option>
+        </select>
+      </div>
+      <div class="log-food-row">
+        <input class="inp" id="pasteParse" placeholder="Paste from Claude to auto-fill..." style="flex:1;" />
+        <button class="btn-ghost" onclick="parsePaste()">Fill</button>
+      </div>
+      <div class="macro-fields">
+        <div class="macro-field-wrap"><label>Cal</label><input class="inp" type="number" id="fCal" placeholder="0" /></div>
+        <div class="macro-field-wrap"><label>Protein</label><input class="inp" type="number" id="fProtein" placeholder="0" /></div>
+        <div class="macro-field-wrap"><label>Carbs</label><input class="inp" type="number" id="fCarbs" placeholder="0" /></div>
+        <div class="macro-field-wrap"><label>Fat</label><input class="inp" type="number" id="fFat" placeholder="0" /></div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-green" style="flex:1;" onclick="addFoodEntry()">Add to Log</button>
+        <button class="btn-ghost" onclick="saveToMenu()">Save to Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALORIE HERO -->
+  <div class="card" style="text-align:center;">
+    <div class="cal-hero">
+      <div class="cal-number" id="todayCal">0</div>
+      <div class="cal-label">calories today</div>
+      <div class="cal-remaining" id="calRemaining">3,500 remaining</div>
+    </div>
+    <div class="prog-wrap">
+      <div class="prog-fill" id="calBar" style="width:0%;"></div>
+    </div>
+    <div class="prog-labels">
+      <span>0</span>
+      <span>Goal: 3,500</span>
+    </div>
+  </div>
+
+  <!-- MACRO PILLS -->
+  <div class="macro-row">
+    <div class="macro-pill calories">
+      <div class="macro-pill-val" id="pillCal">0</div>
+      <div class="macro-pill-target">/ 3,500</div>
+      <div class="macro-pill-label">Calories</div>
+    </div>
+    <div class="macro-pill protein">
+      <div class="macro-pill-val" id="pillProtein">0g</div>
+      <div class="macro-pill-target">/ 185g</div>
+      <div class="macro-pill-label">Protein</div>
+    </div>
+    <div class="macro-pill carbs">
+      <div class="macro-pill-val" id="pillCarbs">0g</div>
+      <div class="macro-pill-target">/ 440g</div>
+      <div class="macro-pill-label">Carbs</div>
+    </div>
+  </div>
+
+  <!-- TODAY'S FOOD LOG -->
+  <div class="card">
+    <div class="card-label">Today's Log</div>
+    <div id="foodLogList"><div class="empty-log">Nothing logged yet.<br>Add food above or pick from Menu Guide.</div></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 2: MENU GUIDE
+═══════════════════════════════ -->
+<div id="tab-menu" class="tab">
+
+  <div class="menu-pills">
+    <button class="menu-pill active" onclick="switchMenu('breakfast', this)">Breakfast</button>
+    <button class="menu-pill" onclick="switchMenu('lunch', this)">Lunch</button>
+    <button class="menu-pill" onclick="switchMenu('dinner', this)">Dinner</button>
+    <button class="menu-pill" onclick="switchMenu('shakes', this)">Shakes</button>
+    <button class="menu-pill" onclick="switchMenu('snacks-menu', this)">Snacks</button>
+  </div>
+
+  <!-- BREAKFAST -->
+  <div id="menu-breakfast" class="menu-section">
+    <div class="collapsible open" id="col-breakfast-recs">
+      <div class="collapsible-header" onclick="toggleCollapsible('breakfast-recs')">
+        <div class="collapsible-title">Meal Recommendations</div>
+        <div class="collapsible-chevron">▼</div>
+      </div>
+      <div class="collapsible-body" id="breakfast-recs-body"></div>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div class="card-label">Saved Items</div>
+      <div id="saved-breakfast"><div class="empty-log" style="padding:12px 0;">No saved items yet.</div></div>
+    </div>
+  </div>
+
+  <!-- LUNCH -->
+  <div id="menu-lunch" class="menu-section" style="display:none;">
+    <div class="collapsible open" id="col-lunch-recs">
+      <div class="collapsible-header" onclick="toggleCollapsible('lunch-recs')">
+        <div class="collapsible-title">Meal Recommendations</div>
+        <div class="collapsible-chevron">▼</div>
+      </div>
+      <div class="collapsible-body" id="lunch-recs-body"></div>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div class="card-label">Saved Items</div>
+      <div id="saved-lunch"><div class="empty-log" style="padding:12px 0;">No saved items yet.</div></div>
+    </div>
+  </div>
+
+  <!-- DINNER -->
+  <div id="menu-dinner" class="menu-section" style="display:none;">
+    <div class="collapsible open" id="col-dinner-recs">
+      <div class="collapsible-header" onclick="toggleCollapsible('dinner-recs')">
+        <div class="collapsible-title">Meal Recommendations</div>
+        <div class="collapsible-chevron">▼</div>
+      </div>
+      <div class="collapsible-body" id="dinner-recs-body"></div>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div class="card-label">Saved Items</div>
+      <div id="saved-dinner"><div class="empty-log" style="padding:12px 0;">No saved items yet.</div></div>
+    </div>
+  </div>
+
+  <!-- SHAKES -->
+  <div id="menu-shakes" class="menu-section" style="display:none;">
+    <div class="collapsible open" id="col-shakes-recs">
+      <div class="collapsible-header" onclick="toggleCollapsible('shakes-recs')">
+        <div class="collapsible-title">Meal Recommendations</div>
+        <div class="collapsible-chevron">▼</div>
+      </div>
+      <div class="collapsible-body" id="shakes-recs-body"></div>
+    </div>
+    <div class="card" style="margin-top:4px;">
+      <div class="card-label">Saved Items</div>
+      <div id="saved-shakes"><div class="empty-log" style="padding:12px 0;">No saved items yet.</div></div>
+    </div>
+  </div>
+
+  <!-- SNACKS (personal saved only) -->
+  <div id="menu-snacks-menu" class="menu-section" style="display:none;">
+    <button class="btn-green" style="width:100%;margin-bottom:12px;" onclick="document.getElementById('snackModal').style.display='flex'">+ Add Snack</button>
+    <div class="card">
+      <div class="card-label">My Saved Snacks</div>
+      <div id="saved-snacks"><div class="empty-log" style="padding:12px 0;">No snacks saved yet.</div></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 3: SNACK ZONE
+═══════════════════════════════ -->
+<div id="tab-snacks" class="tab">
+
+  <!-- Mid Morning -->
+  <div class="collapsible open" id="col-snack-morning">
+    <div class="collapsible-header" onclick="toggleCollapsible('snack-morning')">
+      <div><div class="snack-time-badge badge-morning">☀️ Mid Morning</div><div class="collapsible-title" style="margin-top:4px;">10:30 AM</div></div>
+      <div class="collapsible-chevron">▼</div>
+    </div>
+    <div class="collapsible-body" id="sz-morning"></div>
+  </div>
+
+  <!-- Pre-Practice -->
+  <div class="collapsible" id="col-snack-pre">
+    <div class="collapsible-header" onclick="toggleCollapsible('snack-pre')">
+      <div><div class="snack-time-badge badge-pre">⚡ Pre-Practice</div><div class="collapsible-title" style="margin-top:4px;">12:00 PM – 1:30 PM</div></div>
+      <div class="collapsible-chevron">▼</div>
+    </div>
+    <div class="collapsible-body" id="sz-pre"></div>
+  </div>
+
+  <!-- Post-Practice -->
+  <div class="collapsible" id="col-snack-post">
+    <div class="collapsible-header" onclick="toggleCollapsible('snack-post')">
+      <div><div class="snack-time-badge badge-post">💪 Post-Practice</div><div class="collapsible-title" style="margin-top:4px;">5:00 PM – 5:30 PM</div></div>
+      <div class="collapsible-chevron">▼</div>
+    </div>
+    <div class="collapsible-body" id="sz-post"></div>
+  </div>
+
+  <!-- Bedtime -->
+  <div class="collapsible" id="col-snack-night">
+    <div class="collapsible-header" onclick="toggleCollapsible('snack-night')">
+      <div><div class="snack-time-badge badge-night">🌙 Bedtime</div><div class="collapsible-title" style="margin-top:4px;">9:30 PM</div></div>
+      <div class="collapsible-chevron">▼</div>
+    </div>
+    <div class="collapsible-body" id="sz-night"></div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════
+     TAB 4: PROGRESS
+═══════════════════════════════ -->
+<div id="tab-progress" class="tab">
+
+  <button class="weigh-btn" onclick="openWeighModal()">+ Log This Week's Weight</button>
+
+  <div class="card">
+    <div class="card-label">Road to 175</div>
+    <div class="weight-progress-hero">
+      <div>
+        <div style="display:flex;align-items:flex-end;gap:4px;">
+          <div class="weight-current-big" id="currentWeight">161</div>
+          <div class="weight-unit-big">lbs</div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">current weight</div>
+      </div>
+      <div class="weight-goal-box">
+        <div class="weight-goal-box-val">175</div>
+        <div class="weight-goal-box-label">Goal · Aug 20</div>
+      </div>
+    </div>
+    <div class="prog-wrap" style="height:16px;">
+      <div class="prog-fill" id="weightBar" style="width:0%;"></div>
+    </div>
+    <div class="prog-labels" style="margin-top:6px;">
+      <span>Start: 161</span>
+      <span id="weightGained" style="color:var(--green);font-weight:700;">0 lbs gained</span>
+      <span>Goal: 175</span>
+    </div>
+    <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px;" id="daysLeft">68 days to go · Aug 20, 2026</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-box-val" id="statGained">0</div><div class="stat-box-label">lbs gained</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="statDaysLeft">68</div><div class="stat-box-label">days left</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="statPace">—</div><div class="stat-box-label">projected lbs</div></div>
+    <div class="stat-box"><div class="stat-box-val" id="statWeighIns">0</div><div class="stat-box-label">weigh-ins</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-label">Weekly Weigh-Ins</div>
+    <div id="weeklyLog"><div class="empty-log">No weigh-ins logged yet.<br>Weigh in every Sunday morning.</div></div>
+  </div>
+
+  <div class="action-row">
+    <button class="action-btn" onclick="exportData()">⬆️ Export Data</button>
+    <button class="action-btn" onclick="importData()">⬇️ Import Data</button>
+  </div>
+  <input type="file" id="importFile" accept=".json" style="display:none;" onchange="handleImport(event)" />
+
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// CONSTANTS — edit these to change targets
+// ═══════════════════════════════════════
+const START_WEIGHT = 161;
+const GOAL_WEIGHT  = 175;
+const GOAL_DATE    = '2026-08-20';
+const CAL_GOAL     = 3500;
+const PROTEIN_GOAL = 185;
+const CARBS_GOAL   = 440;
+const FAT_GOAL     = 90;
+
+// ═══════════════════════════════════════
+// MEAL RECOMMENDATIONS DATA
+// To edit: find the meal by name, update cal/protein/carbs/fat values
+// Ingredients: { name, cal, protein, carbs, fat }
+// ═══════════════════════════════════════
+const MEAL_RECS = {
+  breakfast: [
+    {
+      name: "Option A — Member's Mark Egg Bites",
+      ingredients: [
+        { name: "Egg Bites (Bacon) x2", cal: 160, protein: 12, carbs: 4, fat: 11 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 },
+        { name: "Banana 1 medium", cal: 105, protein: 1, carbs: 27, fat: 0 }
+      ]
+    },
+    {
+      name: "Option B — Fried Eggs + Toast",
+      ingredients: [
+        { name: "Fried Eggs x3", cal: 279, protein: 18, carbs: 2, fat: 21 },
+        { name: "Wheat Toast x2 slices", cal: 140, protein: 6, carbs: 26, fat: 2 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option C — Oatmeal Power Bowl",
+      ingredients: [
+        { name: "Quaker Rolled Oats 1 cup", cal: 307, protein: 11, carbs: 55, fat: 5 },
+        { name: "Whole Milk 1 cup (cooked in)", cal: 149, protein: 8, carbs: 12, fat: 8 },
+        { name: "Jif Natural PB 2 tbsp", cal: 190, protein: 7, carbs: 8, fat: 16 },
+        { name: "Honey 1 tbsp", cal: 64, protein: 0, carbs: 17, fat: 0 },
+        { name: "Banana half", cal: 53, protein: 1, carbs: 14, fat: 0 }
+      ]
+    }
+  ],
+  lunch: [
+    {
+      name: "Option A — Chipotle Bowl",
+      ingredients: [
+        { name: "Double Chicken", cal: 340, protein: 56, carbs: 0, fat: 8 },
+        { name: "White Rice", cal: 210, protein: 4, carbs: 44, fat: 3 },
+        { name: "Black Beans", cal: 130, protein: 8, carbs: 22, fat: 2 },
+        { name: "Cheese + Sour Cream", cal: 160, protein: 7, carbs: 3, fat: 14 }
+      ]
+    },
+    {
+      name: "Option B — Chick-fil-A Grilled",
+      ingredients: [
+        { name: "Grilled Chicken Sandwich", cal: 390, protein: 43, carbs: 38, fat: 7 },
+        { name: "Medium Waffle Fries", cal: 400, protein: 5, carbs: 53, fat: 19 },
+        { name: "Large Lemonade", cal: 230, protein: 0, carbs: 60, fat: 0 }
+      ]
+    },
+    {
+      name: "Option C — Leftovers from Dinner",
+      ingredients: [
+        { name: "Leftovers (log manually)", cal: 0, protein: 0, carbs: 0, fat: 0 }
+      ]
+    }
+  ],
+  dinner: [
+    {
+      name: "Option A — Chicken and Rice",
+      ingredients: [
+        { name: "Grilled Chicken Breast x2", cal: 494, protein: 92, carbs: 0, fat: 11 },
+        { name: "White Rice 2 cups cooked", cal: 412, protein: 8, carbs: 90, fat: 1 },
+        { name: "Butter 1 tbsp", cal: 102, protein: 0, carbs: 0, fat: 12 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option B — Pasta + Turkey Meat Sauce",
+      ingredients: [
+        { name: "Spaghetti 2 cups cooked", cal: 440, protein: 15, carbs: 87, fat: 2 },
+        { name: "Ground Turkey Sauce 1 cup", cal: 290, protein: 34, carbs: 8, fat: 14 },
+        { name: "Garlic Bread x2 slices", cal: 300, protein: 6, carbs: 38, fat: 14 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option C — Tacos",
+      ingredients: [
+        { name: "Ground Turkey seasoned", cal: 220, protein: 28, carbs: 2, fat: 11 },
+        { name: "Flour Tortillas x3", cal: 300, protein: 9, carbs: 54, fat: 6 },
+        { name: "Shredded Cheese 1/4 cup", cal: 110, protein: 7, carbs: 0, fat: 9 },
+        { name: "Sour Cream 2 tbsp", cal: 60, protein: 1, carbs: 2, fat: 5 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option D — Turkey Burgers",
+      ingredients: [
+        { name: "Ground Turkey Patties x2", cal: 340, protein: 44, carbs: 0, fat: 18 },
+        { name: "Burger Buns x2", cal: 240, protein: 8, carbs: 44, fat: 4 },
+        { name: "Cheese x2 slices", cal: 140, protein: 8, carbs: 2, fat: 11 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option E — Pork Chops",
+      ingredients: [
+        { name: "Pork Chops x2 baked", cal: 480, protein: 62, carbs: 0, fat: 24 },
+        { name: "Mashed Potatoes 1 cup", cal: 237, protein: 4, carbs: 36, fat: 9 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    },
+    {
+      name: "Option F — Turkey Stir Fry",
+      ingredients: [
+        { name: "Ground Turkey", cal: 220, protein: 28, carbs: 2, fat: 11 },
+        { name: "White Rice 2 cups", cal: 412, protein: 8, carbs: 90, fat: 1 },
+        { name: "Mixed Vegetables 1 cup", cal: 80, protein: 4, carbs: 15, fat: 0 },
+        { name: "Soy Sauce + Butter", cal: 110, protein: 1, carbs: 3, fat: 12 },
+        { name: "Whole Milk 12oz", cal: 220, protein: 12, carbs: 17, fat: 12 }
+      ]
+    }
+  ],
+  shakes: [
+    {
+      name: "Morning Shake (Half Serving)",
+      ingredients: [
+        { name: "Dymatize Mass Gainer 2.25 scoops", cal: 945, protein: 42, carbs: 146, fat: 10 },
+        { name: "Whole Milk 16oz", cal: 298, protein: 16, carbs: 23, fat: 16 },
+        { name: "Banana 1 medium", cal: 105, protein: 1, carbs: 27, fat: 0 },
+        { name: "Jif Natural PB 2 tbsp", cal: 190, protein: 7, carbs: 8, fat: 16 },
+        { name: "Chocolate Syrup 1 tbsp", cal: 50, protein: 0, carbs: 13, fat: 0 }
+      ]
+    },
+    {
+      name: "Post-Practice Shake (Half Serving)",
+      ingredients: [
+        { name: "Dymatize Mass Gainer 2.25 scoops", cal: 945, protein: 42, carbs: 146, fat: 10 },
+        { name: "Whole Milk 16oz", cal: 298, protein: 16, carbs: 23, fat: 16 },
+        { name: "Creatine Monohydrate 5g", cal: 0, protein: 0, carbs: 0, fat: 0 }
+      ]
+    }
+  ]
+};
+
+// ═══════════════════════════════════════
+// SNACK ZONE DATA
+// To edit: find snack by name, update cal/protein/carbs/fat
+// ═══════════════════════════════════════
+const SNACK_ZONE = {
+  morning: [
+    { name: "Chobani Complete Greek Yogurt + Granola", cal: 230, protein: 20, carbs: 28, fat: 5 },
+    { name: "RxBar (Chocolate Sea Salt)", cal: 210, protein: 12, carbs: 24, fat: 9 },
+    { name: "Jif Natural PB on Rice Cakes + Milk", cal: 380, protein: 14, carbs: 38, fat: 18 },
+    { name: "String Cheese x2 + Apple + Almonds", cal: 310, protein: 16, carbs: 28, fat: 15 }
+  ],
+  pre: [
+    { name: "Chocolate Milk + Nature Valley Bar", cal: 370, protein: 12, carbs: 62, fat: 9 },
+    { name: "PB&J on Wheat Bread", cal: 380, protein: 12, carbs: 54, fat: 14 },
+    { name: "Banana + Peanut Butter + Gatorade", cal: 390, protein: 8, carbs: 66, fat: 16 }
+  ],
+  post: [
+    { name: "Core Power Shake 42g Protein", cal: 230, protein: 42, carbs: 10, fat: 5 },
+    { name: "Chocolate Milk + Beef Jerky", cal: 380, protein: 28, carbs: 42, fat: 8 },
+    { name: "Cottage Cheese + Pineapple + Honey", cal: 240, protein: 22, carbs: 28, fat: 5 }
+  ],
+  night: [
+    { name: "Whole Milk + PB Toast", cal: 430, protein: 18, carbs: 42, fat: 22 },
+    { name: "Chobani Greek Yogurt + Honey", cal: 180, protein: 17, carbs: 24, fat: 3 },
+    { name: "Chocolate Milk + Almonds + String Cheese", cal: 410, protein: 20, carbs: 38, fat: 18 }
+  ]
+};
+
+const SNACK_TIPS = {
+  pre: '<div class="tip"><b>Gatorade during practice only.</b> Outside practice choose whole milk or water instead.</div>',
+  post: '<div class="tip"><b>Most important window of the day.</b> Get protein and carbs in within 30 min. Add creatine here.</div>',
+  night: '<div class="tip"><b>Slow protein before bed</b> feeds your muscles while you sleep. Free gains.</div>'
+};
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const TODAY = new Date().toISOString().split('T')[0];
+let state = {
+  log: {},        // { 'YYYY-MM-DD': [ {id, name, cal, protein, carbs, fat} ] }
+  saved: {        // saved items per category
+    breakfast: [], lunch: [], dinner: [], shakes: [], snacks: []
+  },
+  weights: []     // [ { date, weight } ]
+};
+
+let editTarget = null; // { type: 'saved'|'snack', category, index }
+
+// ═══════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════
+function persist() {
+  localStorage.setItem('kyle_bulk', JSON.stringify(state));
+}
+function load() {
+  const raw = localStorage.getItem('kyle_bulk');
+  if (raw) {
+    try { state = JSON.parse(raw); } catch(e) {}
+  }
+  // ensure structure
+  if (!state.log) state.log = {};
+  if (!state.saved) state.saved = { breakfast:[], lunch:[], dinner:[], shakes:[], snacks:[] };
+  if (!state.weights) state.weights = [];
+  ['breakfast','lunch','dinner','shakes','snacks'].forEach(k => {
+    if (!state.saved[k]) state.saved[k] = [];
+  });
+}
+
+function todayLog() {
+  if (!state.log[TODAY]) state.log[TODAY] = [];
+  return state.log[TODAY];
+}
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2000);
+}
+
+// ═══════════════════════════════════════
+// TAB & MENU SWITCHING
+// ═══════════════════════════════════════
+window.switchTab = function(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pill').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+};
+
+window.switchMenu = function(name, btn) {
+  document.querySelectorAll('.menu-section').forEach(s => s.style.display = 'none');
+  document.querySelectorAll('.menu-pill').forEach(b => b.classList.remove('active'));
+  document.getElementById('menu-' + name).style.display = 'block';
+  btn.classList.add('active');
+};
+
+window.toggleCollapsible = function(id) {
+  document.getElementById('col-' + id).classList.toggle('open');
+};
+
+// ═══════════════════════════════════════
+// PARSE PASTE (Claude format)
+// "Food Name: X cal, Xg protein, Xg sugar, Xg carbs, Xg fat..."
+// ═══════════════════════════════════════
+function parseClaudeText(text) {
+  const cal     = (text.match(/(\d+(?:\.\d+)?)\s*cal/i)     || [])[1];
+  const protein = (text.match(/(\d+(?:\.\d+)?)g\s*protein/i) || [])[1];
+  const carbs   = (text.match(/(\d+(?:\.\d+)?)g\s*carbs/i)   || [])[1];
+  const fat     = (text.match(/(\d+(?:\.\d+)?)g\s*fat/i)     || [])[1];
+  // name: everything before first colon
+  const nameMatch = text.match(/^([^:]+):/);
+  return {
+    name:    nameMatch ? nameMatch[1].trim() : '',
+    cal:     cal     ? parseFloat(cal)     : '',
+    protein: protein ? parseFloat(protein) : '',
+    carbs:   carbs   ? parseFloat(carbs)   : '',
+    fat:     fat     ? parseFloat(fat)     : ''
+  };
+}
+
+window.parsePaste = function() {
+  const text = document.getElementById('pasteParse').value;
+  if (!text) return;
+  const p = parseClaudeText(text);
+  if (p.name) document.getElementById('foodName').value = p.name;
+  if (p.cal !== '') document.getElementById('fCal').value = p.cal;
+  if (p.protein !== '') document.getElementById('fProtein').value = p.protein;
+  if (p.carbs !== '') document.getElementById('fCarbs').value = p.carbs;
+  if (p.fat !== '') document.getElementById('fFat').value = p.fat;
+};
+
+window.parseEditPaste = function() {
+  const text = document.getElementById('editPaste').value;
+  if (!text) return;
+  const p = parseClaudeText(text);
+  if (p.name) document.getElementById('editName').value = p.name;
+  if (p.cal !== '') document.getElementById('editCal').value = p.cal;
+  if (p.protein !== '') document.getElementById('editProtein').value = p.protein;
+  if (p.carbs !== '') document.getElementById('editCarbs').value = p.carbs;
+  if (p.fat !== '') document.getElementById('editFat').value = p.fat;
+};
+
+window.parseSnackPaste = function() {
+  const text = document.getElementById('snackPaste').value;
+  if (!text) return;
+  const p = parseClaudeText(text);
+  if (p.name) document.getElementById('snackName').value = p.name;
+  if (p.cal !== '') document.getElementById('snackCal').value = p.cal;
+  if (p.protein !== '') document.getElementById('snackProtein').value = p.protein;
+  if (p.carbs !== '') document.getElementById('snackCarbs').value = p.carbs;
+  if (p.fat !== '') document.getElementById('snackFat').value = p.fat;
+};
+
+// ═══════════════════════════════════════
+// TODAY LOG
+// ═══════════════════════════════════════
+window.addFoodEntry = function() {
+  const name    = document.getElementById('foodName').value.trim();
+  const cal     = parseFloat(document.getElementById('fCal').value)     || 0;
+  const protein = parseFloat(document.getElementById('fProtein').value) || 0;
+  const carbs   = parseFloat(document.getElementById('fCarbs').value)   || 0;
+  const fat     = parseFloat(document.getElementById('fFat').value)     || 0;
+  const section = document.getElementById('logSection').value || 'breakfast';
+  if (!name) { toast('Enter a food name'); return; }
+  const entry = { id: Date.now(), name, cal, protein, carbs, fat, section, _base: {cal, protein, carbs, fat}, _qty: 1 };
+  todayLog().push(entry);
+  persist();
+  clearLogForm();
+  renderTodayLog();
+  toast('Added: ' + name);
+};
+
+function clearLogForm() {
+  ['foodName','pasteParse','fCal','fProtein','fCarbs','fFat'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+}
+
+const CAT_TO_SECTION = { breakfast:'breakfast', lunch:'lunch', dinner:'dinner', shakes:'shake', snacks:'snack' };
+
+function logMealRec(category, mealIndex) {
+  const meal = MEAL_RECS[category][mealIndex];
+  const section = CAT_TO_SECTION[category] || 'breakfast';
+  meal.ingredients.forEach(ing => {
+    if (ing.cal === 0 && ing.protein === 0) return;
+    todayLog().push({ id: Date.now() + Math.random(), name: ing.name, cal: ing.cal, protein: ing.protein, carbs: ing.carbs, fat: ing.fat, section, _base: {cal: ing.cal, protein: ing.protein, carbs: ing.carbs, fat: ing.fat}, _qty: 1 });
+  });
+  persist();
+  renderTodayLog();
+  toast('Logged: ' + meal.name);
+}
+
+function logSnackZone(slot, idx) {
+  const s = SNACK_ZONE[slot][idx];
+  todayLog().push({ id: Date.now(), name: s.name, cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat, section: 'snack', _base: {cal: s.cal, protein: s.protein, carbs: s.carbs, fat: s.fat}, _qty: 1 });
+  persist();
+  renderTodayLog();
+  toast('Logged: ' + s.name);
+}
+
+function logSavedItem(category, idx) {
+  const item = state.saved[category][idx];
+  const section = CAT_TO_SECTION[category] || 'breakfast';
+  todayLog().push({ id: Date.now(), name: item.name, cal: item.cal, protein: item.protein, carbs: item.carbs, fat: item.fat, section, _base: {cal: item.cal, protein: item.protein, carbs: item.carbs, fat: item.fat}, _qty: 1 });
+  persist();
+  renderTodayLog();
+  toast('Logged: ' + item.name);
+}
+
+function deleteFoodEntry(id) {
+  state.log[TODAY] = todayLog().filter(e => e.id !== id);
+  persist();
+  renderTodayLog();
+}
+
+const SECTION_ORDER = ['breakfast','shake','snack','lunch','dinner'];
+const SECTION_LABELS = { breakfast:'Breakfast', shake:'Shake', snack:'Snack', lunch:'Lunch', dinner:'Dinner' };
+
+function renderTodayLog() {
+  const entries = todayLog();
+  const list = document.getElementById('foodLogList');
+  if (!entries.length) {
+    list.innerHTML = '<div class="empty-log">Nothing logged yet.<br>Add food above or pick from Menu Guide.</div>';
+    updateTodayMacros();
+    return;
+  }
+  // group by section
+  const groups = {};
+  entries.forEach(e => {
+    const sec = e.section || 'breakfast';
+    if (!groups[sec]) groups[sec] = [];
+    groups[sec].push(e);
+  });
+  let html = '';
+  SECTION_ORDER.forEach(sec => {
+    if (!groups[sec] || !groups[sec].length) return;
+    html += `<div style="font-size:10px;font-weight:700;color:var(--green);letter-spacing:2px;text-transform:uppercase;padding:10px 0 4px;">${SECTION_LABELS[sec]}</div>`;
+    groups[sec].forEach(e => {
+      const idx = todayLog().indexOf(e);
+      html += `
+        <div class="food-row" style="flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;width:100%;">
+            <div style="flex:1;min-width:0;">
+              <div class="food-row-name">${e.name}</div>
+              <div class="food-row-macros">${e.cal} cal · ${e.protein}g P · ${e.carbs}g C · ${e.fat}g F</div>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+              <button onclick="showQtyEdit(${idx})" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--green);font-size:11px;cursor:pointer;padding:3px 8px;">qty</button>
+              <button onclick="openLogEditModal(${idx})" style="background:none;border:none;color:var(--green);font-size:12px;cursor:pointer;padding:4px;">edit</button>
+              <button onclick="deleteFoodEntry(${e.id})" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;">✕</button>
+            </div>
+          </div>
+          <div id="qty-edit-${idx}" style="display:none;background:var(--card2);border-radius:8px;padding:8px 12px;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Adjust quantity:</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button onclick="adjustQty(${idx},-0.25)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--green);font-size:16px;cursor:pointer;padding:2px 10px;">-</button>
+              <input type="number" id="log-qty-${idx}" value="${e._qty||1}" min="0.25" step="0.25" style="width:50px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:14px;font-weight:700;text-align:center;padding:4px;outline:none;" />
+              <button onclick="adjustQty(${idx},0.25)" style="background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--green);font-size:16px;cursor:pointer;padding:2px 10px;">+</button>
+              <button onclick="applyQty(${idx})" style="background:var(--green);border:none;border-radius:6px;color:#0d0d0d;font-size:12px;font-weight:700;cursor:pointer;padding:6px 12px;">Apply</button>
+            </div>
+          </div>
+        </div>`;
+    });
+  });
+  list.innerHTML = html;
+  updateTodayMacros();
+}
+
+window.showQtyEdit = function(idx) {
+  const el = document.getElementById('qty-edit-' + idx);
+  if (!el) return;
+  const isOpen = el.style.display !== 'none';
+  document.querySelectorAll('[id^="qty-edit-"]').forEach(e => e.style.display = 'none');
+  if (!isOpen) el.style.display = 'block';
+};
+
+window.adjustQty = function(idx, delta) {
+  const input = document.getElementById('log-qty-' + idx);
+  if (!input) return;
+  input.value = Math.max(0.25, Math.round((parseFloat(input.value) + delta) * 4) / 4);
+};
+
+window.applyQty = function(idx) {
+  const qty = parseFloat(document.getElementById('log-qty-' + idx)?.value || 1);
+  const entry = todayLog()[idx];
+  if (!entry) return;
+  if (!entry._base) entry._base = { cal: entry.cal, protein: entry.protein, carbs: entry.carbs, fat: entry.fat };
+  entry.cal     = Math.round(entry._base.cal     * qty);
+  entry.protein = Math.round(entry._base.protein * qty);
+  entry.carbs   = Math.round(entry._base.carbs   * qty);
+  entry.fat     = Math.round(entry._base.fat     * qty);
+  entry._qty    = qty;
+  persist();
+  renderTodayLog();
+  toast('Qty updated');
+};
+
+// Edit log entry modal reuse
+let logEditIdx = null;
+window.openLogEditModal = function(idx) {
+  logEditIdx = idx;
+  const e = todayLog()[idx];
+  if (!e) return;
+  document.getElementById('editName').value    = e.name;
+  document.getElementById('editCal').value     = e._base ? e._base.cal : e.cal;
+  document.getElementById('editProtein').value = e._base ? e._base.protein : e.protein;
+  document.getElementById('editCarbs').value   = e._base ? e._base.carbs : e.carbs;
+  document.getElementById('editFat').value     = e._base ? e._base.fat : e.fat;
+  document.getElementById('editPaste').value   = '';
+  // override save/delete for log entry context
+  document.getElementById('editModal').dataset.context = 'log';
+  document.getElementById('editModal').style.display = 'flex';
+};
+
+function updateTodayMacros() {
+  const entries = todayLog();
+  const totCal     = entries.reduce((s,e) => s + (e.cal||0), 0);
+  const totProtein = entries.reduce((s,e) => s + (e.protein||0), 0);
+  const totCarbs   = entries.reduce((s,e) => s + (e.carbs||0), 0);
+  document.getElementById('todayCal').textContent     = totCal;
+  document.getElementById('pillCal').textContent      = totCal;
+  document.getElementById('pillProtein').textContent  = totProtein + 'g';
+  document.getElementById('pillCarbs').textContent    = totCarbs + 'g';
+  const remaining = CAL_GOAL - totCal;
+  document.getElementById('calRemaining').textContent = remaining > 0
+    ? remaining.toLocaleString() + ' remaining'
+    : 'Goal reached! 🎉';
+  document.getElementById('calRemaining').style.color = remaining > 0 ? 'var(--yellow)' : 'var(--green)';
+  const pct = Math.min((totCal / CAL_GOAL) * 100, 100);
+  document.getElementById('calBar').style.width = pct + '%';
+}
+
+// ═══════════════════════════════════════
+// SAVE TO MENU
+// ═══════════════════════════════════════
+window.saveToMenu = function() {
+  const name    = document.getElementById('foodName').value.trim();
+  const cal     = parseFloat(document.getElementById('fCal').value)     || 0;
+  const protein = parseFloat(document.getElementById('fProtein').value) || 0;
+  const carbs   = parseFloat(document.getElementById('fCarbs').value)   || 0;
+  const fat     = parseFloat(document.getElementById('fFat').value)     || 0;
+  if (!name) { toast('Enter a food name first'); return; }
+  // ask category
+  const cat = prompt('Save to which category?\nbreakfast / lunch / dinner / shakes / snacks');
+  const valid = ['breakfast','lunch','dinner','shakes','snacks'];
+  if (!cat || !valid.includes(cat.toLowerCase().trim())) { toast('Invalid category'); return; }
+  const category = cat.toLowerCase().trim();
+  state.saved[category].push({ id: Date.now(), name, cal, protein, carbs, fat });
+  persist();
+  renderSavedItems(category);
+  toast('Saved to ' + category);
+};
+
+// ═══════════════════════════════════════
+// RENDER MEAL RECOMMENDATIONS
+// ═══════════════════════════════════════
+function renderMealRecs() {
+  Object.keys(MEAL_RECS).forEach(cat => {
+    const body = document.getElementById(cat + '-recs-body');
+    if (!body) return;
+    body.innerHTML = MEAL_RECS[cat].map((meal, mi) => {
+      const totCal     = meal.ingredients.reduce((s,i) => s + i.cal, 0);
+      const totProtein = meal.ingredients.reduce((s,i) => s + i.protein, 0);
+      const totCarbs   = meal.ingredients.reduce((s,i) => s + i.carbs, 0);
+      const totFat     = meal.ingredients.reduce((s,i) => s + i.fat, 0);
+      const ings = meal.ingredients.map(ing =>
+        `<div class="meal-rec-ingredient">${ing.name} <span>${ing.cal} cal · ${ing.protein}g P</span></div>`
+      ).join('');
+      return `
+        <div class="meal-rec-card">
+          <div class="meal-rec-name">${meal.name}</div>
+          ${ings}
+          <div class="meal-rec-totals">
+            <div class="meal-rec-total-item"><div class="meal-rec-total-val">${totCal}</div><div class="meal-rec-total-label">Cal</div></div>
+            <div class="meal-rec-total-item"><div class="meal-rec-total-val">${totProtein}g</div><div class="meal-rec-total-label">Protein</div></div>
+            <div class="meal-rec-total-item"><div class="meal-rec-total-val">${totCarbs}g</div><div class="meal-rec-total-label">Carbs</div></div>
+            <div class="meal-rec-total-item"><div class="meal-rec-total-val">${totFat}g</div><div class="meal-rec-total-label">Fat</div></div>
+          </div>
+          <div class="meal-rec-actions">
+            <button class="btn-log" onclick="logMealRec('${cat}', ${mi})">Log This Meal</button>
+          </div>
+        </div>`;
+    }).join('');
+  });
+}
+
+// ═══════════════════════════════════════
+// RENDER SAVED ITEMS
+// ═══════════════════════════════════════
+function renderSavedItems(cat) {
+  const container = document.getElementById('saved-' + (cat === 'snacks' ? 'snacks' : cat));
+  if (!container) return;
+  const items = state.saved[cat];
+  if (!items || !items.length) {
+    container.innerHTML = '<div class="empty-log" style="padding:12px 0;">No saved items yet.</div>';
+    return;
+  }
+  container.innerHTML = items.map((item, idx) => `
+    <div class="saved-item">
+      <div style="flex:1;min-width:0;">
+        <div class="saved-item-name">${item.name}</div>
+        <div class="saved-item-macros">${item.protein}g P · ${item.carbs}g C · ${item.fat}g F</div>
+      </div>
+      <span class="saved-item-cal">${item.cal}</span>
+      <button class="icon-btn" onclick="logSavedItem('${cat}', ${idx})" title="Log">＋</button>
+      <button class="icon-btn" onclick="openEditModal('${cat}', ${idx})" title="Edit">✏️</button>
+    </div>`).join('');
+}
+
+function renderAllSaved() {
+  ['breakfast','lunch','dinner','shakes','snacks'].forEach(renderSavedItems);
+}
+
+// ═══════════════════════════════════════
+// SNACK ZONE RENDER
+// ═══════════════════════════════════════
+function renderSnackZone() {
+  Object.keys(SNACK_ZONE).forEach(slot => {
+    const el = document.getElementById('sz-' + slot);
+    if (!el) return;
+    el.innerHTML = SNACK_ZONE[slot].map((s, idx) => `
+      <div class="snack-option">
+        <div>
+          <div class="snack-option-name">${s.name}</div>
+          <div class="snack-option-detail">${s.cal} cal · ${s.protein}g protein</div>
+        </div>
+        <button class="snack-log-btn" onclick="logSnackZone('${slot}', ${idx})">Log</button>
+      </div>`).join('') + (SNACK_TIPS[slot] || '');
+  });
+}
+
+// ═══════════════════════════════════════
+// EDIT MODAL (saved items)
+// ═══════════════════════════════════════
+window.openEditModal = function(category, idx) {
+  editTarget = { category, idx };
+  const item = state.saved[category][idx];
+  document.getElementById('editName').value    = item.name;
+  document.getElementById('editCal').value     = item.cal;
+  document.getElementById('editProtein').value = item.protein;
+  document.getElementById('editCarbs').value   = item.carbs;
+  document.getElementById('editFat').value     = item.fat;
+  document.getElementById('editPaste').value   = '';
+  document.getElementById('editModal').style.display = 'flex';
+};
+
+window.closeEditModal = function() {
+  document.getElementById('editModal').style.display = 'none';
+  editTarget = null;
+};
+
+window.saveEditItem = function() {
+  const context = document.getElementById('editModal').dataset.context;
+  const name    = document.getElementById('editName').value.trim();
+  const cal     = parseFloat(document.getElementById('editCal').value)     || 0;
+  const protein = parseFloat(document.getElementById('editProtein').value) || 0;
+  const carbs   = parseFloat(document.getElementById('editCarbs').value)   || 0;
+  const fat     = parseFloat(document.getElementById('editFat').value)     || 0;
+  if (context === 'log') {
+    const entry = todayLog()[logEditIdx];
+    if (entry) {
+      entry.name = name;
+      entry.cal = cal; entry.protein = protein; entry.carbs = carbs; entry.fat = fat;
+      entry._base = { cal, protein, carbs, fat };
+      entry._qty = 1;
+      persist();
+      renderTodayLog();
+    }
+  } else {
+    if (!editTarget) return;
+    const { category, idx } = editTarget;
+    state.saved[category][idx] = { ...state.saved[category][idx], name, cal, protein, carbs, fat };
+    persist();
+    renderSavedItems(category);
+  }
+  closeEditModal();
+  toast('Saved');
+};
+
+window.deleteEditItem = function() {
+  const context = document.getElementById('editModal').dataset.context;
+  if (context === 'log') {
+    const entry = todayLog()[logEditIdx];
+    if (entry) {
+      state.log[TODAY] = todayLog().filter(e => e.id !== entry.id);
+      persist();
+      renderTodayLog();
+    }
+  } else {
+    if (!editTarget) return;
+    const { category, idx } = editTarget;
+    state.saved[category].splice(idx, 1);
+    persist();
+    renderSavedItems(category);
+  }
+  closeEditModal();
+  toast('Deleted');
+};
+
+// ═══════════════════════════════════════
+// ADD SNACK MODAL
+// ═══════════════════════════════════════
+window.saveSnack = function() {
+  const name    = document.getElementById('snackName').value.trim();
+  const cal     = parseFloat(document.getElementById('snackCal').value)     || 0;
+  const protein = parseFloat(document.getElementById('snackProtein').value) || 0;
+  const carbs   = parseFloat(document.getElementById('snackCarbs').value)   || 0;
+  const fat     = parseFloat(document.getElementById('snackFat').value)     || 0;
+  if (!name) { toast('Enter a snack name'); return; }
+  state.saved.snacks.push({ id: Date.now(), name, cal, protein, carbs, fat });
+  persist();
+  renderSavedItems('snacks');
+  document.getElementById('snackModal').style.display = 'none';
+  ['snackName','snackPaste','snackCal','snackProtein','snackCarbs','snackFat'].forEach(id => document.getElementById(id).value = '');
+  toast('Snack saved');
+};
+
+// ═══════════════════════════════════════
+// PROGRESS TAB
+// ═══════════════════════════════════════
+window.openWeighModal = function() {
+  document.getElementById('weighInput').value = '';
+  document.getElementById('weighDate').value  = TODAY;
+  document.getElementById('weighModal').style.display = 'flex';
+};
+
+window.saveWeight = function() {
+  const w = parseFloat(document.getElementById('weighInput').value);
+  const d = document.getElementById('weighDate').value;
+  if (!w || !d) { toast('Enter weight and date'); return; }
+  // remove existing entry for same date
+  state.weights = state.weights.filter(e => e.date !== d);
+  state.weights.push({ date: d, weight: w });
+  state.weights.sort((a,b) => a.date.localeCompare(b.date));
+  persist();
+  document.getElementById('weighModal').style.display = 'none';
+  renderProgress();
+  toast('Weight logged: ' + w + ' lbs');
+};
+
+function renderProgress() {
+  const weights = state.weights;
+  const latest  = weights.length ? weights[weights.length - 1].weight : START_WEIGHT;
+  const gained  = +(latest - START_WEIGHT).toFixed(1);
+  const pct     = Math.min(Math.max((gained / (GOAL_WEIGHT - START_WEIGHT)) * 100, 0), 100);
+
+  document.getElementById('currentWeight').textContent = latest;
+  document.getElementById('weightGained').textContent  = (gained >= 0 ? '+' : '') + gained + ' lbs';
+  document.getElementById('weightBar').style.width     = pct + '%';
+  document.getElementById('statGained').textContent    = (gained >= 0 ? '+' : '') + gained;
+
+  // days left
+  const today    = new Date();
+  const goal     = new Date(GOAL_DATE);
+  const daysLeft = Math.max(0, Math.round((goal - today) / 86400000));
+  document.getElementById('statDaysLeft').textContent = daysLeft;
+  document.getElementById('daysLeft').textContent     = daysLeft + ' days to go · Aug 20, 2026';
+
+  // pace projection
+  if (weights.length >= 2) {
+    const first      = weights[0];
+    const weeksIn    = Math.max(1, (new Date(weights[weights.length-1].date) - new Date(first.date)) / (7*86400000));
+    const lbsPerWeek = (latest - START_WEIGHT) / weeksIn;
+    const weeksLeft  = daysLeft / 7;
+    const projected  = +(gained + lbsPerWeek * weeksLeft).toFixed(1);
+    document.getElementById('statPace').textContent = '+' + projected;
+  }
+
+  document.getElementById('statWeighIns').textContent = weights.length;
+
+  // weekly log list
+  const logEl = document.getElementById('weeklyLog');
+  if (!weights.length) {
+    logEl.innerHTML = '<div class="empty-log">No weigh-ins logged yet.<br>Weigh in every Sunday morning.</div>';
+    return;
+  }
+  logEl.innerHTML = [...weights].reverse().map((e, i, arr) => {
+    const prev   = arr[i + 1];
+    const change = prev ? +(e.weight - prev.weight).toFixed(1) : null;
+    const changeHtml = change !== null
+      ? `<span class="week-row-change ${change >= 0 ? 'change-up' : 'change-down'}">${change >= 0 ? '+' : ''}${change} lbs</span>`
+      : '<span class="week-row-change" style="color:var(--muted);">Start</span>';
+    return `
+      <div class="week-row">
+        <div class="week-row-date">${e.date}</div>
+        <div class="week-row-weight">${e.weight} lbs</div>
+        ${changeHtml}
+        <button class="icon-btn" onclick="deleteWeight('${e.date}')" title="Delete">✕</button>
+      </div>`;
+  }).join('');
+}
+
+window.deleteWeight = function(date) {
+  state.weights = state.weights.filter(e => e.date !== date);
+  persist();
+  renderProgress();
+  toast('Entry removed');
+};
+
+// ═══════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════
+window.exportData = function() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = 'kyle-bulk-data-' + TODAY + '.json';
+  a.click();
+};
+
+window.importData = function() {
+  document.getElementById('importFile').click();
+};
+
+window.handleImport = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      state = JSON.parse(ev.target.result);
+      persist();
+      renderAll();
+      toast('Data imported');
+    } catch(err) {
+      toast('Import failed');
+    }
+  };
+  reader.readAsText(file);
+};
+
+// ═══════════════════════════════════════
+// DATE HEADER
+// ═══════════════════════════════════════
+function setDate() {
+  const days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now    = new Date();
+  document.getElementById('headerDate').textContent = days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate();
+  // set weigh date default
+  const wd = document.getElementById('weighDate');
+  if (wd) wd.value = TODAY;
+}
+
+// ═══════════════════════════════════════
+// RENDER ALL
+// ═══════════════════════════════════════
+function renderAll() {
+  renderTodayLog();
+  renderMealRecs();
+  renderAllSaved();
+  renderSnackZone();
+  renderProgress();
+}
+
+// ── INIT ──
+load();
+setDate();
+renderAll();
+</script>
+</body>
+</html>
