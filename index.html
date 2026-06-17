@@ -334,7 +334,7 @@ body {
 <body>
 
 <!-- Sign In Screen -->
-<div id="signInScreen" style="display:none;">
+<div id="signInScreen">
   <div style="width:60px;height:60px;background:rgba(109,190,69,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;">🏈</div>
   <h1>Kyle's Bulk Tracker</h1>
   <p>Sign in with your Google account to save your progress securely to the cloud.</p>
@@ -346,8 +346,8 @@ body {
 </div>
 
 <!-- User Bar -->
-<div id="userBar" style="display:flex;">
-  <span id="userEmail" style="color:var(--green);font-weight:700;font-size:12px;">Test Mode</span>
+<div id="userBar">
+  <span id="userEmail" style="color:var(--green);font-weight:700;font-size:12px;"></span>
   <div style="display:flex;align-items:center;gap:12px;">
     <span id="saveStatus">Ready</span>
     <button onclick="signOut()" style="background:none;border:1px solid var(--border);border-radius:6px;color:var(--muted);font-size:11px;cursor:pointer;padding:3px 8px;font-family:inherit;">Sign Out</button>
@@ -2291,15 +2291,14 @@ window.saveProgressDay = function() {
 // FIREBASE INIT + AUTH
 // Replace the config below with Kyle's Firebase project config
 // ═══════════════════════════════════════
-/* FIREBASE DISABLED FOR TESTING
 window.addEventListener('load', function() {
   const firebaseConfig = {
-    apiKey:            "REPLACE_WITH_KYLE_API_KEY",
-    authDomain:        "REPLACE_WITH_KYLE_AUTH_DOMAIN",
-    projectId:         "REPLACE_WITH_KYLE_PROJECT_ID",
-    storageBucket:     "REPLACE_WITH_KYLE_STORAGE_BUCKET",
-    messagingSenderId: "REPLACE_WITH_KYLE_SENDER_ID",
-    appId:             "REPLACE_WITH_KYLE_APP_ID"
+    apiKey:            "AIzaSyC2mOzNRaB7MPUic68q2pYi6Xe5KKi4hVc",
+    authDomain:        "kyle-bulk-tracker.firebaseapp.com",
+    projectId:         "kyle-bulk-tracker",
+    storageBucket:     "kyle-bulk-tracker.firebasestorage.app",
+    messagingSenderId: "842692226452",
+    appId:             "1:842692226452:web:e448b8d45b294bcdd1f381"
   };
 
   firebase.initializeApp(firebaseConfig);
@@ -2328,7 +2327,6 @@ window.addEventListener('load', function() {
   });
 });
 
-*/
 window.signInWithGoogle = function() {
   document.getElementById('authStatus').textContent = 'Signing in...';
   const provider = new firebase.auth.GoogleAuthProvider();
