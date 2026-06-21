@@ -2313,27 +2313,29 @@ window.addEventListener('load', function() {
       document.getElementById('userEmail').textContent      = user.email || user.displayName || 'Signed in';
       loadFromFirebase();
     } else {
-      auth.getRedirectResult().then(function(result) {
-        if (!result || !result.user) {
-          document.getElementById('signInScreen').style.display = 'flex';
-          document.getElementById('userBar').style.display      = 'none';
-          _uid = null;
-        }
-      }).catch(function(err) {
-        document.getElementById('signInScreen').style.display = 'flex';
-        document.getElementById('authStatus').textContent = 'Sign in failed: ' + err.message;
-      });
+      document.getElementById('signInScreen').style.display = 'flex';
+      document.getElementById('userBar').style.display      = 'none';
+      _uid = null;
     }
   });
 });
 
+// Popup is the only sign-in method used here.
+// signInWithRedirect is intentionally NOT used as a fallback because it relies on
+// browser sessionStorage surviving the full redirect round-trip to Google and back.
+// On iOS Safari (and other storage-partitioned mobile browsers) that session state
+// gets cleared mid-flow, producing "missing initial state" errors. Popup keeps the
+// whole flow in one tab and does not have this failure mode.
 window.signInWithGoogle = function() {
   document.getElementById('authStatus').textContent = 'Signing in...';
   const provider = new firebase.auth.GoogleAuthProvider();
   auth.signInWithPopup(provider).catch(function(err) {
-    if (err.code === 'auth/popup-blocked' || err.code === 'auth/popup-closed-by-user') {
-      document.getElementById('authStatus').textContent = 'Popup blocked — trying redirect...';
-      auth.signInWithRedirect(provider);
+    if (err.code === 'auth/popup-blocked') {
+      document.getElementById('authStatus').textContent = 'Popup was blocked. Allow popups for this site in your browser settings, then tap Sign in again.';
+    } else if (err.code === 'auth/popup-closed-by-user') {
+      document.getElementById('authStatus').textContent = '';
+    } else if (err.code === 'auth/cancelled-popup-request') {
+      document.getElementById('authStatus').textContent = '';
     } else {
       document.getElementById('authStatus').textContent = 'Sign in failed: ' + err.message;
     }
